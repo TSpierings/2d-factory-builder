@@ -7,9 +7,7 @@ import com.badlogic.ashley.systems.SortedIteratingSystem
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.tchaka.factorybuilder.components.TextureComponent
 import com.tchaka.factorybuilder.components.TransformComponent
-import java.io.Console
 
 class RenderingSystem :
   SortedIteratingSystem(
@@ -22,7 +20,6 @@ class RenderingSystem :
   private var frustumHeight = 0.0f
   private var frustumWidth = 0.0f
 
-  private val textureMapper = ComponentMapper.getFor(TextureComponent::class.java)
   private val transformMapper = ComponentMapper.getFor(TransformComponent::class.java)
   private val renderQueue = mutableListOf<Entity>()
   private val comparator = ZComparator()
@@ -56,7 +53,6 @@ class RenderingSystem :
 //    println("Renderqueue depth: ${renderQueue.size}")
 
     renderQueue.forEach {
-      val texture = textureMapper.get(it)
       val transform = transformMapper.get(it)
 
 //      if (texture.region == null) return

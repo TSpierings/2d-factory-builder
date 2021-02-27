@@ -5,9 +5,14 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.systems.SortedIteratingSystem
 import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.math.Matrix4
+import com.badlogic.gdx.math.Vector3
 import com.tchaka.factorybuilder.components.CellComponent
 import com.tchaka.factorybuilder.components.TransformComponent
+import java.util.*
+import kotlin.system.measureTimeMillis
 
 class CellRenderingSystem(private val camera: Camera) : SortedIteratingSystem(
   Family.all(
@@ -17,51 +22,64 @@ class CellRenderingSystem(private val camera: Camera) : SortedIteratingSystem(
   ZComparator()
 ) {
   private val comparator = ZComparator()
-  private val renderQueue = mutableListOf<Entity>()
+  private val renderMap = mutableMapOf<Int, MutableList<Entity>>()
 
-  //  private val transformMapper = ComponentMapper.getFor(TransformComponent::class.java)
+  private val transformMapper = ComponentMapper.getFor(TransformComponent::class.java)
   private val cellMapper = ComponentMapper.getFor(CellComponent::class.java)
   private val spriteBatch = SpriteBatch()
 
+  private var frames = 0
+  private var frameTime = 0L
+
+  private val tex = Texture("test_tex_2.png")
+
+  init {
+    Timer().scheduleAtFixedRate(object : TimerTask() {
+      override fun run() {
+        println("Frames: $frames Frametime: $frameTime")
+        frames = 0
+      }
+    }, 0, 1000)
+  }
+
   override fun update(deltaTime: Float) {
     super.update(deltaTime)
-
-    renderQueue.sortWith(comparator)
 
     camera.update()
     spriteBatch.projectionMatrix = camera.combined
     spriteBatch.begin()
     spriteBatch.enableBlending()
 
-    renderQueue.forEach {
-//      val transform = transformMapper.get(it)
-      val cell = cellMapper.get(it)
+    frameTime = measureTimeMillis {
+      renderMap.forEach {
+        it.value.sortWith(comparator)
+        val transform = transformMapper.get(it.value[0])
+        spriteBatch.transformMatrix = Matrix4()
+          .translate(transform.position)
+          .rotate(
+            Vector3(0f, 0f, 1f),
+            transform.rotation
+          )
 
-      spriteBatch.draw(cell.texture, cell.vertices, 0, cell.vertices.count())
+        it.value.forEach {
+          val cell = cellMapper.get(it)
+          spriteBatch.draw(tex, cell.vertices, 0, cell.vertices.count())
+        }
+      }
     }
 
     spriteBatch.end()
-    renderQueue.clear()
+    renderMap.clear()
+
+    frames++
   }
 
   override fun processEntity(entity: Entity, deltaTime: Float) {
-    renderQueue.add(entity)
-  }
+//    entity.getComponent(TransformComponent::class.java).rotation += 0.01f
 
-//  private fun translateVertices(vertices: FloatArray, transform: Vector3): FloatArray {
-//    val translatedVertices = vertices.clone()
-//    translatedVertices[0] += transform.x
-//    translatedVertices[1] += transform.y
-//
-//    translatedVertices[5] += transform.x
-//    translatedVertices[6] += transform.y
-//
-//    translatedVertices[10] += transform.x
-//    translatedVertices[11] += transform.y
-//
-//    translatedVertices[15] += transform.x
-//    translatedVertices[16] += transform.y
-//
-//    return translatedVertices
-//  }
+    val planetId = entity.getComponent(CellComponent::class.java).planetId
+
+    renderMap.putIfAbsent(planetId, mutableListOf())
+    renderMap[entity.getComponent(CellComponent::class.java).planetId]?.add(entity)
+  }
 }

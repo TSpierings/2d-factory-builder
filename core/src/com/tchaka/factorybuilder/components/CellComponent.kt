@@ -6,4 +6,5 @@ import com.badlogic.gdx.graphics.Texture
 class CellComponent: Component {
   lateinit var vertices: FloatArray
   lateinit var texture: Texture
+  var planetId = 0
 }

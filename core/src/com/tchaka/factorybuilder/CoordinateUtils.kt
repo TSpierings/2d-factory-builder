@@ -6,7 +6,7 @@ import kotlin.math.sin
 
 class CoordinateUtils {
   companion object {
-    private val TAU = Math.PI * 2;
+    private const val TAU = Math.PI * 2
 
     fun sectionToWorld(radial: Float, distance: Float): Vector2 {
       val radians = TAU * radial

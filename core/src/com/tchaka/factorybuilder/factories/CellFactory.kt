@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.math.Vector3
 import com.tchaka.factorybuilder.CoordinateUtils
 import com.tchaka.factorybuilder.components.CellComponent
 import com.tchaka.factorybuilder.components.PlanetComponent
@@ -29,17 +28,17 @@ class CellFactory {
       ).toFloatBits()
 
       val radialStep = (PI * 2).toFloat() / (planetSize * 10)
-      val radialPercentage = radialStep * radial
+      val radians = radialStep * radial
 
       val a = CoordinateUtils.sectionToWorld(0f, planetSize)
       val b = CoordinateUtils.sectionToWorld(radialStep, planetSize)
       val dist = Vector2.dst(a.x, a.y, b.x, b.y)
       val totalHeight = planetSize + (height * dist)
 
-      val leftLower = CoordinateUtils.sectionToWorld(radialPercentage, totalHeight)
-      val rightLower = CoordinateUtils.sectionToWorld(radialPercentage + radialStep, totalHeight)
-      val leftUpper = CoordinateUtils.sectionToWorld(radialPercentage, totalHeight + dist)
-      val rightUpper = CoordinateUtils.sectionToWorld(radialPercentage + radialStep, totalHeight + dist)
+      val leftLower = CoordinateUtils.sectionToWorld(radians, totalHeight)
+      val rightLower = CoordinateUtils.sectionToWorld(radians + radialStep, totalHeight)
+      val leftUpper = CoordinateUtils.sectionToWorld(radians, totalHeight + dist)
+      val rightUpper = CoordinateUtils.sectionToWorld(radians + radialStep, totalHeight + dist)
 
       cellComponent.vertices = floatArrayOf(
         leftLower.x, leftLower.y, color, 0f, 1f,

@@ -33,6 +33,7 @@ class PlanetFactory {
 
       planetaryBodyComponent.size = 100f
       planetComponent.planetId = planetId
+      planetComponent.slots = ArrayList(planetaryBodyComponent.size.toInt() * 10)
 
       entity.add(transformComponent)
       entity.add(planetaryBodyComponent)

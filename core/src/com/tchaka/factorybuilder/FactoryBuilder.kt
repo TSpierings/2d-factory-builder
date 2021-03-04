@@ -7,33 +7,42 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.tchaka.factorybuilder.components.PlanetComponent
 import com.tchaka.factorybuilder.components.PlanetaryBodyComponent
 import com.tchaka.factorybuilder.factories.CellFactory
 import com.tchaka.factorybuilder.factories.PlanetFactory
 import com.tchaka.factorybuilder.systems.CellRenderingSystem
 import com.tchaka.factorybuilder.systems.PlanetRenderingSystem
-import com.tchaka.factorybuilder.systems.RenderingSystem
-import java.lang.Math.PI
 import java.util.*
 import kotlin.system.measureTimeMillis
 
 class FactoryBuilder : ApplicationAdapter() {
-  private lateinit var renderingSystem: RenderingSystem
   private lateinit var planetRenderingSystem: PlanetRenderingSystem
   private lateinit var celLRenderingSystem: CellRenderingSystem
   private lateinit var camera: OrthographicCamera
   private val moveSpeed = 25f
   private val engine = PooledEngine()
+  private lateinit var font: BitmapFont
+  private lateinit var batch: SpriteBatch
+
+  private val pixelsPerMetre = 1.0f
+  private var frustumHeight = 0.0f
+  private var frustumWidth = 0.0f
 
   override fun create() {
+    font = BitmapFont()
+    batch = SpriteBatch()
+
+    createCamera()
+
     println("create..")
-    renderingSystem = RenderingSystem()
-    camera = renderingSystem.Camera
-    camera.zoom = 1.01f
+    camera.zoom = 0.01f
     camera.translate(0f, 100f)
 
     planetRenderingSystem = PlanetRenderingSystem(camera)
-    celLRenderingSystem = CellRenderingSystem(camera)
+    celLRenderingSystem = CellRenderingSystem()
 
     engine.addSystem(planetRenderingSystem)
     engine.addSystem(celLRenderingSystem)
@@ -43,6 +52,14 @@ class FactoryBuilder : ApplicationAdapter() {
       engine.addEntity(planet)
       fillPlanetWithCells(planet)
     }
+  }
+
+  fun createCamera() {
+    frustumHeight = Gdx.graphics.height / pixelsPerMetre
+    frustumWidth = Gdx.graphics.width / pixelsPerMetre
+
+    camera = OrthographicCamera(frustumWidth, frustumHeight)
+    camera.position.set(0f, 0f, 0f)
   }
 
   override fun render() {
@@ -67,15 +84,24 @@ class FactoryBuilder : ApplicationAdapter() {
     Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-    engine.update(Gdx.graphics.deltaTime)
+    val elapsed = measureTimeMillis {
+      engine.update(Gdx.graphics.deltaTime)
+    }
+
+    batch.begin()
+    font.draw(batch, Gdx.graphics.framesPerSecond.toString() + " fps", 10f, Gdx.graphics.height - 10f)
+    font.draw(batch, "$elapsed ms", 10f, Gdx.graphics.height - 30f)
+    batch.end()
   }
 
   private fun fillPlanetWithCells(planet: Entity) {
     val data = planet.getComponent(PlanetaryBodyComponent::class.java)
 
     for (i in 0 until (data.size * 10).toInt()) {
-      for(h in 0 until 5) {
-        engine.addEntity(CellFactory.create(engine, h, i, planet))
+      for(h in 0 until 50) {
+        val cell = CellFactory.create(engine, h, i, planet)
+        engine.addEntity(cell)
+        planet.getComponent(PlanetComponent::class.java).slots.add(cell)
       }
     }
   }

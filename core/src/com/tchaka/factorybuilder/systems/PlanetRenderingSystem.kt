@@ -3,37 +3,35 @@ package com.tchaka.factorybuilder.systems
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family
-import com.badlogic.ashley.systems.SortedIteratingSystem
+import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.tchaka.factorybuilder.components.PlanetComponent
 import com.tchaka.factorybuilder.components.PlanetaryBodyComponent
 import com.tchaka.factorybuilder.components.TransformComponent
 import kotlin.math.PI
 
-class PlanetRenderingSystem(private val camera: Camera) : SortedIteratingSystem(
+class PlanetRenderingSystem(private val camera: Camera) : IteratingSystem(
   Family.all(
     TransformComponent::class.java,
     PlanetaryBodyComponent::class.java
-  ).get(),
-  ZComparator()
+  ).get()
 ) {
-  private val comparator = ZComparator()
   private val renderQueue = mutableListOf<Entity>()
   private val shapeRenderer = ShapeRenderer()
   private val transformMapper = ComponentMapper.getFor(TransformComponent::class.java)
-  private val planetMapper = ComponentMapper.getFor(PlanetaryBodyComponent::class.java)
+  private val planetaryBodyMapper = ComponentMapper.getFor(PlanetaryBodyComponent::class.java)
+  private val planetMapper = ComponentMapper.getFor(PlanetComponent::class.java)
 
   override fun update(deltaTime: Float) {
     super.update(deltaTime)
-
-    renderQueue.sortWith(comparator)
 
     camera.update()
     shapeRenderer.projectionMatrix = camera.combined
     shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
     renderQueue.forEach {
-      val planet = planetMapper.get(it)
+      val planet = planetaryBodyMapper.get(it)
       val transform = transformMapper.get(it)
 
       shapeRenderer.color = planet.color
@@ -42,6 +40,13 @@ class PlanetRenderingSystem(private val camera: Camera) : SortedIteratingSystem(
     }
 
     shapeRenderer.end()
+
+    renderQueue.forEach {
+      val planet = planetMapper.get(it)
+      CellRenderingSystem.renderCells(planet.slots, camera)
+    }
+
+
     renderQueue.clear()
   }
 

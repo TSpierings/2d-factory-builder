@@ -5,31 +5,45 @@ import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.*
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.badlogic.gdx.utils.viewport.Viewport
 import com.tchaka.factorybuilder.components.PlanetComponent
-import com.tchaka.factorybuilder.components.PlanetaryBodyComponent
+import com.tchaka.factorybuilder.components.StarComponent
 import com.tchaka.factorybuilder.factories.CellFactory
 import com.tchaka.factorybuilder.factories.PlanetFactory
 import com.tchaka.factorybuilder.systems.CellRenderingSystem
 import com.tchaka.factorybuilder.systems.PlanetRenderingSystem
-import java.util.*
 import kotlin.system.measureTimeMillis
 
 class FactoryBuilder : ApplicationAdapter() {
   private lateinit var planetRenderingSystem: PlanetRenderingSystem
   private lateinit var celLRenderingSystem: CellRenderingSystem
   private lateinit var camera: OrthographicCamera
-  private val moveSpeed = 25f
+  private val moveSpeed = 250f
   private val engine = PooledEngine()
   private lateinit var font: BitmapFont
   private lateinit var batch: SpriteBatch
 
-  private val pixelsPerMetre = 1.0f
+  private val pixelsPerMetre = 32.0f
   private var frustumHeight = 0.0f
   private var frustumWidth = 0.0f
+
+  private lateinit var stage: Stage
+  private lateinit var fpsCounter: Label
+  private lateinit var renderTime: Label
+
+  private lateinit var table: Table
 
   override fun create() {
     font = BitmapFont()
@@ -38,8 +52,8 @@ class FactoryBuilder : ApplicationAdapter() {
     createCamera()
 
     println("create..")
-    camera.zoom = 0.01f
-    camera.translate(0f, 100f)
+    camera.zoom = 10f
+    camera.translate(0f, 0f)
 
     planetRenderingSystem = PlanetRenderingSystem(camera)
     celLRenderingSystem = CellRenderingSystem()
@@ -47,19 +61,61 @@ class FactoryBuilder : ApplicationAdapter() {
     engine.addSystem(planetRenderingSystem)
     engine.addSystem(celLRenderingSystem)
 
-    for (i in 0 until 1) {
-      val planet = PlanetFactory.create(engine, i)
-      engine.addEntity(planet)
-      fillPlanetWithCells(planet)
-    }
+    createStar()
+
+//    for (i in 0 until 1) {
+//      val planet = PlanetFactory.create(engine)
+//      engine.addEntity(planet)
+//      fillPlanetWithCells(planet)
+//    }
+
+    stage = Stage(ScreenViewport())
+    Gdx.input.inputProcessor = stage
+    val skin = Skin(Gdx.files.internal("skin/uiskin.json"))
+
+    table = Table(skin)
+    table.align(Align.topLeft)
+    table.pad(10f)
+
+    fpsCounter = Label("0 fps", skin)
+    renderTime = Label("0 ms", skin)
+
+    val debugButton = TextButton("Debug", skin)
+    debugButton.addListener(object : ClickListener() {
+      override fun clicked(event: InputEvent?, x: Float, y: Float) {
+        super.clicked(event, x, y)
+        table.setDebug(!table.debug, true)
+      }
+    })
+
+    table.add(debugButton).align(Align.topLeft)
+    table.row()
+    table.add(fpsCounter).align(Align.topLeft)
+    table.row()
+    table.add(renderTime).align(Align.topLeft)
+
+    stage.addActor(table)
   }
 
-  fun createCamera() {
+  private fun createCamera() {
     frustumHeight = Gdx.graphics.height / pixelsPerMetre
     frustumWidth = Gdx.graphics.width / pixelsPerMetre
 
     camera = OrthographicCamera(frustumWidth, frustumHeight)
     camera.position.set(0f, 0f, 0f)
+  }
+
+  override fun resize(width: Int, height: Int) {
+    super.resize(width, height)
+
+    stage.viewport.update(width, height, true)
+    table.width = Gdx.graphics.width.toFloat()
+    table.height = Gdx.graphics.height.toFloat()
+
+    frustumHeight = Gdx.graphics.height / pixelsPerMetre
+    frustumWidth = Gdx.graphics.width / pixelsPerMetre
+    camera.viewportHeight = frustumHeight
+    camera.viewportWidth = frustumWidth
   }
 
   override fun render() {
@@ -76,9 +132,9 @@ class FactoryBuilder : ApplicationAdapter() {
     }
 
     if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_ADD)) {
-      camera.zoom = 0.01f.coerceAtLeast(camera.zoom - 0.005f)
+      camera.zoom = 0.01f.coerceAtLeast(camera.zoom - 0.5f)
     } else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_SUBTRACT)) {
-      camera.zoom += 0.005f
+      camera.zoom += 0.5f
     }
 
     Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
@@ -88,25 +144,53 @@ class FactoryBuilder : ApplicationAdapter() {
       engine.update(Gdx.graphics.deltaTime)
     }
 
-    batch.begin()
-    font.draw(batch, Gdx.graphics.framesPerSecond.toString() + " fps", 10f, Gdx.graphics.height - 10f)
-    font.draw(batch, "$elapsed ms", 10f, Gdx.graphics.height - 30f)
-    batch.end()
+//    batch.begin()
+//    font.draw(batch, Gdx.graphics.framesPerSecond.toString() + " fps", 10f, 100f)
+//    font.draw(batch, "$elapsed ms", 10f, 130f)
+//    batch.end()
+
+    fpsCounter.setText("${Gdx.graphics.framesPerSecond} fps")
+    renderTime.setText("$elapsed ms")
+
+    stage.act(Gdx.graphics.deltaTime)
+    stage.draw()
+  }
+
+  private fun createStar() {
+     for (i in 0 until 1) {
+       val star = engine.createEntity()
+       val starComponent = engine.createComponent(StarComponent::class.java)
+       starComponent.size = 200f
+       val planetCount = 3
+       starComponent.planets = ArrayList(planetCount)
+
+       for (p in 0 until planetCount) {
+         val distance = 500f * p
+         val planet = PlanetFactory.create(engine, distance)
+         starComponent.planets.add(planet)
+         engine.addEntity(planet)
+//         fillPlanetWithCells(planet)
+       }
+
+       star.add(starComponent)
+       engine.addEntity(star)
+     }
   }
 
   private fun fillPlanetWithCells(planet: Entity) {
-    val data = planet.getComponent(PlanetaryBodyComponent::class.java)
+    val data = planet.getComponent(PlanetComponent::class.java)
 
     for (i in 0 until (data.size * 10).toInt()) {
-      for(h in 0 until 50) {
+      for(h in 0 until 10) {
         val cell = CellFactory.create(engine, h, i, planet)
         engine.addEntity(cell)
-        planet.getComponent(PlanetComponent::class.java).slots.add(cell)
+        planet.getComponent(PlanetComponent::class.java).cells.add(cell)
       }
     }
   }
 
   override fun dispose() {
     super.dispose()
+    stage.dispose()
   }
 }

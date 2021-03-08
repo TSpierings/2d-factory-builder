@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2
 import com.tchaka.factorybuilder.CoordinateUtils
 import com.tchaka.factorybuilder.components.CellComponent
 import com.tchaka.factorybuilder.components.PlanetComponent
-import com.tchaka.factorybuilder.components.PlanetaryBodyComponent
 import com.tchaka.factorybuilder.components.TransformComponent
 import java.lang.Math.PI
 
@@ -17,7 +16,7 @@ class CellFactory {
       val entity = engine.createEntity()
       val transformComponent = engine.createComponent(TransformComponent::class.java)
       val cellComponent = engine.createComponent(CellComponent::class.java)
-      val planetSize = planet.getComponent(PlanetaryBodyComponent::class.java).size
+      val planetSize = planet.getComponent(PlanetComponent::class.java).size
 
       transformComponent.position = planet.getComponent(TransformComponent::class.java).position
       transformComponent.rotation = 0.0f
@@ -47,7 +46,7 @@ class CellFactory {
         leftUpper.x, leftUpper.y, color, 0f, 0f
       )
 
-      cellComponent.planetId = planet.getComponent(PlanetComponent::class.java).planetId
+      cellComponent.planetId = planet.getComponent(PlanetComponent::class.java).id
 
       entity.add(transformComponent)
       entity.add(cellComponent)

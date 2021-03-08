@@ -5,38 +5,35 @@ import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector3
 import com.tchaka.factorybuilder.components.PlanetComponent
-import com.tchaka.factorybuilder.components.PlanetaryBodyComponent
 import com.tchaka.factorybuilder.components.TransformComponent
 
 class PlanetFactory {
   companion object {
-    fun create(engine: PooledEngine, planetId: Int): Entity {
+    fun create(engine: PooledEngine, distance: Float): Entity {
       val entity = engine.createEntity()
       val transformComponent = engine.createComponent(TransformComponent::class.java)
-      val planetaryBodyComponent = engine.createComponent(PlanetaryBodyComponent::class.java)
       val planetComponent = engine.createComponent(PlanetComponent::class.java)
 
       transformComponent.position = Vector3(
-        (Math.random().toFloat() - 0.5f) * 1500,
-        (Math.random().toFloat() - 0.5f) * 1500,
+        distance,
+        0f,
         0f
       )
 
-      transformComponent.position = Vector3.Zero
+//      transformComponent.position = Vector3.Zero
 
-      planetaryBodyComponent.color = Color(
+      planetComponent.color = Color(
         Math.random().toFloat(),
         Math.random().toFloat(),
         Math.random().toFloat(),
         1f
       )
 
-      planetaryBodyComponent.size = 100f
-      planetComponent.planetId = planetId
-      planetComponent.slots = ArrayList(planetaryBodyComponent.size.toInt() * 10)
+      planetComponent.size = 100f
+      planetComponent.orbitalDistance = distance
+      planetComponent.cells = ArrayList(planetComponent.size.toInt() * 10)
 
       entity.add(transformComponent)
-      entity.add(planetaryBodyComponent)
       entity.add(planetComponent)
 
       return entity

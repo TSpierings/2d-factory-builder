@@ -29,6 +29,10 @@ class CellRenderingSystem : IteratingSystem(
     private val tex = Texture("test_tex_2.png")
 
     fun renderCells(cells: ArrayList<Entity>, camera: Camera) {
+      if (cells.size <= 0) {
+        return
+      }
+
       camera.update()
       spriteBatch.projectionMatrix = camera.combined
       spriteBatch.begin()

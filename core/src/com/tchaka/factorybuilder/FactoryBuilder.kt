@@ -5,19 +5,18 @@ import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.*
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.badlogic.gdx.utils.viewport.Viewport
 import com.tchaka.factorybuilder.components.PlanetComponent
 import com.tchaka.factorybuilder.components.StarComponent
 import com.tchaka.factorybuilder.factories.CellFactory
@@ -32,7 +31,6 @@ class FactoryBuilder : ApplicationAdapter() {
   private lateinit var camera: OrthographicCamera
   private val moveSpeed = 250f
   private val engine = PooledEngine()
-  private lateinit var font: BitmapFont
   private lateinit var batch: SpriteBatch
 
   private val pixelsPerMetre = 32.0f
@@ -46,7 +44,6 @@ class FactoryBuilder : ApplicationAdapter() {
   private lateinit var table: Table
 
   override fun create() {
-    font = BitmapFont()
     batch = SpriteBatch()
 
     createCamera()
@@ -144,11 +141,6 @@ class FactoryBuilder : ApplicationAdapter() {
       engine.update(Gdx.graphics.deltaTime)
     }
 
-//    batch.begin()
-//    font.draw(batch, Gdx.graphics.framesPerSecond.toString() + " fps", 10f, 100f)
-//    font.draw(batch, "$elapsed ms", 10f, 130f)
-//    batch.end()
-
     fpsCounter.setText("${Gdx.graphics.framesPerSecond} fps")
     renderTime.setText("$elapsed ms")
 
@@ -157,31 +149,31 @@ class FactoryBuilder : ApplicationAdapter() {
   }
 
   private fun createStar() {
-     for (i in 0 until 1) {
-       val star = engine.createEntity()
-       val starComponent = engine.createComponent(StarComponent::class.java)
-       starComponent.size = 200f
-       val planetCount = 3
-       starComponent.planets = ArrayList(planetCount)
+    for (i in 0 until 1) {
+      val star = engine.createEntity()
+      val starComponent = engine.createComponent(StarComponent::class.java)
+      starComponent.size = 200f
+      val planetCount = 3
+      starComponent.planets = ArrayList(planetCount)
 
-       for (p in 0 until planetCount) {
-         val distance = 500f * p
-         val planet = PlanetFactory.create(engine, distance)
-         starComponent.planets.add(planet)
-         engine.addEntity(planet)
+      for (p in 0 until planetCount) {
+        val distance = 500f * p
+        val planet = PlanetFactory.create(engine, distance)
+        starComponent.planets.add(planet)
+        engine.addEntity(planet)
 //         fillPlanetWithCells(planet)
-       }
+      }
 
-       star.add(starComponent)
-       engine.addEntity(star)
-     }
+      star.add(starComponent)
+      engine.addEntity(star)
+    }
   }
 
   private fun fillPlanetWithCells(planet: Entity) {
     val data = planet.getComponent(PlanetComponent::class.java)
 
     for (i in 0 until (data.size * 10).toInt()) {
-      for(h in 0 until 10) {
+      for (h in 0 until 10) {
         val cell = CellFactory.create(engine, h, i, planet)
         engine.addEntity(cell)
         planet.getComponent(PlanetComponent::class.java).cells.add(cell)

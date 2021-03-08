@@ -9,6 +9,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -23,15 +24,18 @@ import com.tchaka.factorybuilder.components.StarComponent
 import com.tchaka.factorybuilder.factories.CellFactory
 import com.tchaka.factorybuilder.factories.PlanetFactory
 import com.tchaka.factorybuilder.screens.GameScreen
+import com.tchaka.factorybuilder.screens.TestScreen
 import com.tchaka.factorybuilder.systems.CellRenderingSystem
 import com.tchaka.factorybuilder.systems.PlanetRenderingSystem
 import kotlin.system.measureTimeMillis
 
 class FactoryBuilder : Game() {
-  private lateinit var batch: SpriteBatch
+  lateinit var batch: SpriteBatch
+  lateinit var shapeRenderer: ShapeRenderer
 
   override fun create() {
     batch = SpriteBatch()
-    setScreen(GameScreen(this))
+    shapeRenderer = ShapeRenderer()
+    setScreen(TestScreen(this))
   }
 }

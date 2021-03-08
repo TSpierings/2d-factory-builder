@@ -5,36 +5,47 @@ import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.math.Vector2
 import com.tchaka.factorybuilder.FactoryBuilder
 import kotlin.random.Random
 
-class Builder(private val game: FactoryBuilder): InputAdapter() {
+class Builder(
+  private val game: FactoryBuilder,
+  private val world: World
+) : InputAdapter() {
   private var toBuild = -1
   private val cellSize = 100f
   private var color = Color.RED
 
   fun render() {
-   if (toBuild >= 0) {
-     val position = Vector2(Gdx.input.x.toFloat(), Gdx.graphics.height - Gdx.input.y.toFloat())
+    if (toBuild >= 0) {
+      val position = getCellPosition(Gdx.input.x, Gdx.graphics.height - Gdx.input.y)
 
-     position.x = MathUtils.floor(position.x / cellSize) * cellSize
-     position.y = MathUtils.floor(position.y / cellSize) * cellSize
+      if (world.hasBuilding(position.first, position.second)) {
+        game.shapeRenderer.color = Color.RED
+      } else {
+        game.shapeRenderer.color = color
+      }
 
-     game.shapeRenderer.color = color
-     game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
-     game.shapeRenderer.rect(position.x, position.y, 100f, 100f)
-   }
+      game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
+      game.shapeRenderer.rect(position.first * cellSize, position.second * cellSize, 100f, 100f)
+    }
   }
 
   fun setToBuild(building: Int) {
-    if(toBuild == building) {
+    if (toBuild == building) {
       toBuild = -1
       return
     }
 
     toBuild = building
     color = makeColor(building)
+  }
+
+  private fun getCellPosition(x: Int, y: Int): Pair<Int, Int> {
+    return Pair(
+      MathUtils.floor(x / cellSize),
+      MathUtils.floor(y / cellSize)
+    )
   }
 
   private fun makeColor(seed: Int): Color {
@@ -44,7 +55,11 @@ class Builder(private val game: FactoryBuilder): InputAdapter() {
   }
 
   override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-    toBuild = -1
+    val coord = getCellPosition(screenX, Gdx.graphics.height - screenY)
+    if (world.addBuilding(coord.first, coord.second, toBuild) == null) {
+      toBuild = -1
+    }
+
     return true
   }
 }

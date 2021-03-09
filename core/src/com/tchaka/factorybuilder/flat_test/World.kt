@@ -4,16 +4,17 @@ import com.badlogic.gdx.Gdx
 
 class World {
   private val stride = 100
-  private val cells = mutableMapOf<Int, Int>()
-
-  fun getCells() = cells
+  private var buildingIds = 0
+  val cells = mutableMapOf<Int, Core>()
+  val orders = mutableListOf<Order>()
 
   fun hasBuilding(x: Int, y: Int): Boolean {
     return  cells.containsKey(x + y * stride)
   }
 
-  fun addBuilding(x: Int, y: Int, building: Int): Int? {
+  fun addBuilding(x: Int, y: Int, type: Int): Core? {
     Gdx.app.log("Build", "x: $x, y: $y, int: ${x + y * stride}")
-    return cells.putIfAbsent(x + y * stride, building)
+    val location = x + y * stride
+    return cells.putIfAbsent(location, Core(buildingIds++, type, location))
   }
 }

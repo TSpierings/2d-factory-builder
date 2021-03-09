@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -15,6 +16,7 @@ class UI(private val builder: Builder) {
   private lateinit var stage: Stage
   private lateinit var table: Table
   private val skin = Skin(Gdx.files.internal("skin/uiskin.json"))
+  private var fpsLabel = Label("", skin)
 
   fun create() {
     stage = Stage(ScreenViewport())
@@ -23,6 +25,9 @@ class UI(private val builder: Builder) {
     table = Table(skin)
     table.align(Align.topLeft)
     table.pad(10f)
+
+    table.add(fpsLabel).align(Align.topLeft)
+    table.row()
 
     val debugButton = TextButton("Debug", skin)
     debugButton.addListener(object : ClickListener() {
@@ -50,6 +55,8 @@ class UI(private val builder: Builder) {
   }
 
   fun render(delta: Float) {
+    fpsLabel.setText(Gdx.graphics.framesPerSecond)
+
     stage.act(delta)
     stage.draw()
   }

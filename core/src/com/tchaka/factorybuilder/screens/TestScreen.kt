@@ -8,9 +8,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.tchaka.factorybuilder.FactoryBuilder
-import com.tchaka.factorybuilder.flat_test.Builder
-import com.tchaka.factorybuilder.flat_test.UI
-import com.tchaka.factorybuilder.flat_test.World
+import com.tchaka.factorybuilder.flat_test.*
+import kotlin.system.measureTimeMillis
 
 class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
   private lateinit var camera: OrthographicCamera
@@ -32,7 +31,7 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
     camera.viewportWidth = width.toFloat()
     camera.position.set(
       width / 2f,
-      height / 2f,
+      0f,
       0f)
 
     userInterface.resize(width, height)
@@ -40,6 +39,10 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
   override fun render(delta: Float) {
     super.render(delta)
+
+    measureTimeMillis {
+      update(delta)
+    }
 
     Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -50,14 +53,19 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
     game.shapeRenderer.setAutoShapeType(true)
     game.shapeRenderer.begin()
 
-    world.getCells().forEach { key, value ->
-      game.shapeRenderer.color = Color.BLUE
+    world.cells.forEach { (key, value) ->
+      game.shapeRenderer.color = value.color
       game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
       val x = key % 100
       val y = MathUtils.floor(key / 100f)
       game.shapeRenderer.rect(x * 100f, y * 100f, 100f, 100f)
     }
 
+    game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
+    world.orders.forEach {
+      game.shapeRenderer.color = Core.makeColor(it.type)
+      it.render(game.shapeRenderer)
+    }
 
     builder.render()
 
@@ -66,7 +74,9 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
     userInterface.render(delta)
   }
 
-  override fun hide() {
-    super.hide()
+  private fun update(delta: Float) {
+    world.cells.values.forEach { it.update(delta) }
+    world.cells.values.forEach { it.resolveOrders(world) }
+    world.orders.removeIf { it.update(delta) }
   }
 }

@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.tchaka.factorybuilder.FactoryBuilder
-import kotlin.random.Random
 
 class Builder(
   private val game: FactoryBuilder,
@@ -18,27 +17,26 @@ class Builder(
 
   fun render() {
     if (toBuild >= 0) {
-      val position = getCellPosition(Gdx.input.x, Gdx.graphics.height - Gdx.input.y)
+      val position = getCellPosition(Gdx.input.x, 0)
 
-      if (world.hasBuilding(position.first, position.second)) {
+      if (world.hasBuilding(position.first, position.second))
         game.shapeRenderer.color = Color.RED
-      } else {
+      else
         game.shapeRenderer.color = color
-      }
 
       game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
       game.shapeRenderer.rect(position.first * cellSize, position.second * cellSize, 100f, 100f)
     }
   }
 
-  fun setToBuild(building: Int) {
-    if (toBuild == building) {
+  fun setToBuild(type: Int) {
+    if (toBuild == type) {
       toBuild = -1
       return
     }
 
-    toBuild = building
-    color = makeColor(building)
+    toBuild = type
+    color = Core.makeColor(type)
   }
 
   private fun getCellPosition(x: Int, y: Int): Pair<Int, Int> {
@@ -48,17 +46,12 @@ class Builder(
     )
   }
 
-  private fun makeColor(seed: Int): Color {
-    val random = Random(seed)
-
-    return Color(random.nextFloat(), random.nextFloat(), random.nextFloat(), 1f)
-  }
-
   override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-    val coord = getCellPosition(screenX, Gdx.graphics.height - screenY)
-    if (world.addBuilding(coord.first, coord.second, toBuild) == null) {
+    if (toBuild < 0) return false
+
+    val coord = getCellPosition(screenX, 0)
+    if (world.addBuilding(coord.first, coord.second, toBuild) == null)
       toBuild = -1
-    }
 
     return true
   }

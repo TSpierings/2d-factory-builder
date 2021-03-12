@@ -1,85 +1,103 @@
 package com.tchaka.factorybuilder.graph
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.pfa.Connection
+import com.badlogic.gdx.ai.pfa.DefaultGraphPath
+import com.badlogic.gdx.ai.pfa.GraphPath
+import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder
+import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.math.MathUtils.floor
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.Array
 import kotlin.math.abs
 import kotlin.system.measureTimeMillis
 
-data class Edge(
-  val a: Int,
-  val b: Int,
-  val cost: Float
-)
+class Graph: IndexedGraph<Vertex> {
+  private val heuristic = VertexHeuristic()
+  private val vertices = mutableListOf<Vertex>()
+  private val edges = mutableListOf<Edge>()
 
-data class Node(
-  val x: Int,
-  val y: Int
-) {
-  val edges = mutableListOf<Edge>()
-}
+  private val edgeMap = mutableMapOf<Vertex, Array<Connection<Vertex>>>()
 
-class Graph {
-  private val indexedNodes = arrayOfNulls<Node>(100 * 100)
+  private var lastNodeIndex = 0
+  private var lastPath: GraphPath<Vertex> = DefaultGraphPath()
 
   fun addNode(x: Int, y: Int) {
-    indexedNodes[x + y * 100] = Node(x, y)
+    vertices += Vertex(x, y, lastNodeIndex)
+    lastNodeIndex++
+
+    vertices.filter {
+      abs((x - it.x) + (y - it.y)) < 2
+    }.forEach {
+      val distance = Vector2.dst2(it.x.toFloat(), it.y.toFloat(), x.toFloat(), y.toFloat())
+
+      if (distance == 1f) {
+        addConnection(vertices.last(), it)
+        addConnection(it, vertices.last())
+      }
+    }
+
+    println(measureTimeMillis {
+      lastPath = findPath(vertices[0], vertices.last())
+    })
+
+  }
+
+  fun addConnection(from: Vertex, to: Vertex) {
+    val edge = Edge(from, to, 1f)
+
+    if(edgeMap.putIfAbsent(from, Array.with(edge)) != null) {
+      edgeMap[from]!!.add(edge)
+    }
+
+    edges += edge
+  }
+
+  fun findPath(start: Vertex, goal: Vertex): GraphPath<Vertex> {
+    val vertexPath = DefaultGraphPath<Vertex>()
+    IndexedAStarPathFinder(this).searchNodePath(start, goal, heuristic, vertexPath)
+    return vertexPath
   }
 
   fun render(shapeRenderer: ShapeRenderer) {
     shapeRenderer.color = Color.BLACK
 
-    indexedNodes.filterNotNull().forEach {
+    vertices.forEach {
       shapeRenderer.circle(
         it.x * 100f + 50f,
         it.y * 100f + 50f, 10f,
         10
       )
+    }
 
-      it.edges.forEach { edge ->
-        shapeRenderer.rectLine(
-          Vector2(edge.a % 100 * 100f + 50f, floor(edge.a / 100f) * 100f + 50f),
-          Vector2(edge.b % 100 * 100f + 50f, floor(edge.b / 100f) * 100f + 50f),
-          2f
-        )
-      }
+    edges.forEach {
+      shapeRenderer.rectLine(
+        Vector2(it.from.x * 100f + 50f, it.from.y * 100f + 50f),
+        Vector2(it.to.x * 100f + 50f, it.to.y * 100f + 50f),
+        2f
+      )
+    }
+
+    shapeRenderer.color = Color.RED
+    lastPath.forEach {
+      shapeRenderer.circle(
+        it.x * 100f + 50f,
+        it.y * 100f + 50f, 10f,
+        10
+      )
     }
   }
 
-  fun recalculateEdges() {
-    val time = measureTimeMillis {
-      var lastNodeIndex = -1
-      for (x in 0 until 100) {
-        for (y in 0 until 100) {
-          if (indexedNodes[x + y * 100] == null) continue
-
-          indexedNodes[x + y * 100]!!.edges.clear()
-
-          // Right neighbour
-          if (x < 99 && indexedNodes[x + 1 + y * 100] != null) {
-            indexedNodes[x + y * 100]!!.edges += Edge(x + y * 100, x + 1 + y * 100, 1f)
-          }
-
-          // Top neighbour
-          if (y < 99 && indexedNodes[x + (y + 1) * 100] != null) {
-            indexedNodes[x + y * 100]!!.edges += Edge(x + y * 100, x + (y + 1) * 100, 1f)
-          }
-        }
-
-        if (lastNodeIndex >= 0 && lastNodeIndex != x && indexedNodes[x] != null && x - lastNodeIndex > 1) {
-          indexedNodes[x]!!.edges += Edge(x, lastNodeIndex, abs(x - lastNodeIndex).toFloat())
-        }
-
-        if (indexedNodes[x] != null) lastNodeIndex = x
-      }
-    }
-    val edges = indexedNodes.filterNotNull().sumBy { it.edges.size }
-    Gdx.app.log("Graph", "Recalculate ${edges} edges in $time ms")
+  override fun getIndex(node: Vertex): Int {
+    return node.index
   }
 
-  fun findNearestType(x: Int, y: Int, type: Int) {
+  override fun getNodeCount(): Int {
+    return vertices.count()
+  }
 
+  override fun getConnections(fromNode: Vertex): Array<Connection<Vertex>> {
+    return edgeMap.getOrDefault(fromNode, Array())
   }
 }

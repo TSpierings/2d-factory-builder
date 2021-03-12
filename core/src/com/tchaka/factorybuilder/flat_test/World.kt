@@ -1,6 +1,5 @@
 package com.tchaka.factorybuilder.flat_test
 
-import com.badlogic.gdx.Gdx
 import com.tchaka.factorybuilder.graph.Graph
 
 class World {
@@ -15,20 +14,7 @@ class World {
   }
 
   fun addBuilding(x: Int, y: Int, type: Int): Core? {
-    Gdx.app.log("Build", "x: $x, y: $y, int: ${x + y * stride}")
-    val location = x + y * stride
-
-    val building = cells.putIfAbsent(location, Core(buildingIds++, type, location))
-
-    if (building == null) {
-      graph.addNode(x, y)
-      graph.recalculateEdges()
-    }
-
-    return building
-  }
-
-  fun addBuildingWithoutEdges(x: Int, y: Int, type: Int): Core? {
+//    Gdx.app.log("Build", "x: $x, y: $y, int: ${x + y * stride}")
     val location = x + y * stride
 
     val building = cells.putIfAbsent(location, Core(buildingIds++, type, location))

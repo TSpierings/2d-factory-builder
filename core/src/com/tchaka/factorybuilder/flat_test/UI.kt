@@ -44,6 +44,12 @@ class UI(private val builder: Builder) {
       table.add(createBuildingButton(i)).align(Align.topLeft)
     }
 
+    debugLog.forEach {
+      table.row()
+      val label = Label("", skin)
+      debugLog[it.key] = label
+      table.add(label).align(Align.topLeft)
+    }
 
     stage.addActor(table)
   }
@@ -71,5 +77,12 @@ class UI(private val builder: Builder) {
     })
 
     return building
+  }
+
+  companion object {
+    val debugLog = mutableMapOf<String, Label?>(
+      Pair("updateTime", null),
+      Pair("orderCount", null)
+    )
   }
 }

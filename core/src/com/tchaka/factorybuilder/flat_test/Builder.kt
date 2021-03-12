@@ -17,7 +17,7 @@ class Builder(
 
   fun render() {
     if (toBuild >= 0) {
-      val position = getCellPosition(Gdx.input.x, 0)
+      val position = getCellPosition(Gdx.input.x, Gdx.graphics.height - Gdx.input.y)
 
       if (world.hasBuilding(position.first, position.second))
         game.shapeRenderer.color = Color.RED
@@ -49,7 +49,7 @@ class Builder(
   override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
     if (toBuild < 0) return false
 
-    val coord = getCellPosition(screenX, 0)
+    val coord = getCellPosition(screenX, Gdx.graphics.height - screenY)
     if (world.addBuilding(coord.first, coord.second, toBuild) == null)
       toBuild = -1
 

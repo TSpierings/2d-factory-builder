@@ -1,6 +1,5 @@
 package com.tchaka.factorybuilder.flat_test
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import kotlin.random.Random
 
@@ -9,7 +8,7 @@ class Core(
   private val type: Int,
   private val location: Int
 ) {
-  private val productionSpeed = 1f / (type + 1)
+  private val productionSpeed = 1f
   private val bufferSize = 10
 
   private var productionProgress = 0f
@@ -29,8 +28,6 @@ class Core(
       productionProgress -= productionSpeed
       outputBuffer += 1
       inputBuffer -= 1
-
-      Gdx.app.log("Building $id", "buffer $outputBuffer type $type")
     }
   }
 

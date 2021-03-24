@@ -41,7 +41,6 @@ class Graph: IndexedGraph<Vertex> {
     println(measureTimeMillis {
       lastPath = findPath(vertices[0], vertices.last())
     })
-
   }
 
   fun addConnection(from: Vertex, to: Vertex) {
@@ -87,6 +86,10 @@ class Graph: IndexedGraph<Vertex> {
         10
       )
     }
+  }
+
+  fun getVertex(x: Int, y: Int): Vertex? {
+    return vertices.find { it.x == x && it.y == y }
   }
 
   override fun getIndex(node: Vertex): Int {

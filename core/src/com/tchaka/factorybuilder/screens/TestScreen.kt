@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.tchaka.factorybuilder.FactoryBuilder
 import com.tchaka.factorybuilder.flat_test.*
+import kotlin.math.floor
+import kotlin.math.round
 import kotlin.system.measureTimeMillis
 
 class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
@@ -36,12 +38,11 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
     userInterface.resize(width, height)
 
-//    for (x in 0 until 100) {
-//      for(y in 0 until 100) {
-//        world.addBuildingWithoutEdges(x, y, 0)
-//      }
-//    }
-//    world.graph.recalculateEdges()
+    for (x in 0 until 10) {
+      for(y in 0 until 10) {
+        world.addBuilding(x, y, round(Math.random() * 5).toInt())
+      }
+    }
   }
 
   override fun render(delta: Float) {
@@ -68,7 +69,6 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
       game.shapeRenderer.rect(x * 100f, y * 100f, 100f, 100f)
     }
 
-    game.shapeRenderer.set(ShapeRenderer.ShapeType.Filled)
     world.orders.forEach {
       game.shapeRenderer.color = Core.makeColor(it.type)
       it.render(game.shapeRenderer)
@@ -84,8 +84,8 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
   private fun update(delta: Float) {
     world.cells.values.forEach { it.update(delta) }
-//    world.cells.values.forEach { it.resolveOrders(world) }
-//    world.orders.removeIf { it.update(delta) }
+    world.cells.values.forEach { it.resolveOrders(world) }
+    world.orders.removeIf { it.update(delta) }
 
     UI.debugLog["orderCount"]?.setText("Orders: ${world.orders.count()}")
   }

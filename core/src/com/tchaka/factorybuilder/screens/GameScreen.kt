@@ -161,7 +161,7 @@ class GameScreen(val game: Game) : ScreenAdapter() {
         val planet = PlanetFactory.create(engine, distance)
         starComponent.planets.add(planet)
         engine.addEntity(planet)
-//         fillPlanetWithCells(planet)
+         fillPlanetWithCells(planet)
       }
 
       star.add(starComponent)

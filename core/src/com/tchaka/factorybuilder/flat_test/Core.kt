@@ -1,6 +1,7 @@
 package com.tchaka.factorybuilder.flat_test
 
 import com.badlogic.gdx.graphics.Color
+import kotlin.math.floor
 import kotlin.random.Random
 
 class Core(
@@ -19,7 +20,9 @@ class Core(
   val color = makeColor(type)
 
   fun update(delta: Float) {
-    if (type == 0) inputBuffer = 1
+    if (type == 0) return
+
+    if (type == 1) inputBuffer = 1
 
     if (outputBuffer < bufferSize && inputBuffer > 0)
       productionProgress += delta
@@ -39,7 +42,10 @@ class Core(
         it.value.outputBuffer--
         reserved++
 
-        world.orders.add(Order(it.key % 100f, location % 100f, it.value.type) {
+        world.orders.add(Order(world.graph.findPath(
+          world.graph.getVertex(it.value.location % 100, floor(it.value.location / 100f).toInt())!!,
+          world.graph.getVertex(location % 100, floor(location / 100f).toInt())!!
+        ), it.value.type) {
           inputBuffer++
           reserved--
         })

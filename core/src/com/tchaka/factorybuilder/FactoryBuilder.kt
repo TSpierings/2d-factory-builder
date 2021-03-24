@@ -37,5 +37,6 @@ class FactoryBuilder : Game() {
     batch = SpriteBatch()
     shapeRenderer = ShapeRenderer()
     setScreen(TestScreen(this))
+//    setScreen(GameScreen(this))
   }
 }

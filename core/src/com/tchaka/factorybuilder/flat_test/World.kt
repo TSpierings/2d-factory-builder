@@ -14,7 +14,6 @@ class World {
   }
 
   fun addBuilding(x: Int, y: Int, type: Int): Core? {
-//    Gdx.app.log("Build", "x: $x, y: $y, int: ${x + y * stride}")
     val location = x + y * stride
 
     val building = cells.putIfAbsent(location, Core(buildingIds++, type, location))
@@ -24,5 +23,9 @@ class World {
     }
 
     return building
+  }
+
+  fun getBuilding(x: Int, y: Int): Core? {
+    return cells[ x + y * stride]
   }
 }

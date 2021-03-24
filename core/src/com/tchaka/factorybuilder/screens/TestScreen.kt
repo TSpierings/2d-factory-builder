@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.tchaka.factorybuilder.FactoryBuilder
 import com.tchaka.factorybuilder.flat_test.*
-import kotlin.math.floor
 import kotlin.math.round
 import kotlin.system.measureTimeMillis
 
@@ -16,7 +15,8 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
   private lateinit var camera: OrthographicCamera
   private val world = World()
   private val builder = Builder(game, world)
-  private val userInterface = UI(builder)
+  private val planner = Planner(game, world)
+  private val userInterface = UI(builder, planner)
 
   override fun show() {
     super.show()
@@ -38,9 +38,13 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
     userInterface.resize(width, height)
 
-    for (x in 0 until 10) {
-      for(y in 0 until 10) {
-        world.addBuilding(x, y, round(Math.random() * 5).toInt())
+    for (x in 0 until 100) {
+      for(y in 0 until 100) {
+        val newBuilding = world.addBuilding(x, y, round(Math.random() * 5).toInt())
+
+        if (y > 0) {
+          newBuilding?.target = world.getBuilding(0, 0)
+        }
       }
     }
   }
@@ -76,6 +80,7 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
     builder.render()
     world.graph.render(game.shapeRenderer)
+    planner.render()
 
     game.shapeRenderer.end()
 
@@ -84,9 +89,9 @@ class TestScreen(private val game: FactoryBuilder) : ScreenAdapter() {
 
   private fun update(delta: Float) {
     world.cells.values.forEach { it.update(delta) }
-    world.cells.values.forEach { it.resolveOrders(world) }
+    val newOrders = world.cells.values.sumBy { it.resolveOrdersManual(world) }
     world.orders.removeIf { it.update(delta) }
 
-    UI.debugLog["orderCount"]?.setText("Orders: ${world.orders.count()}")
+    UI.debugLog["orderCount"]?.setText("New: $newOrders total: ${world.orders.size}")
   }
 }

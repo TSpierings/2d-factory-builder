@@ -111,7 +111,8 @@ LabelStyle: {
 	},
 	default: {
 		font: commodore-64,
-		fontColor: { a: 1, b: 1, g: 0.64705884, r: 0.64705884 }
+		background: white,
+		fontColor: { a: 1, b: 1, g: 0.64705884, r: 0.64705884 },
 	},
 	error: {
 		font: commodore-64,

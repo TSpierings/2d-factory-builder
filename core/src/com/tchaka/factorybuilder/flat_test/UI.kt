@@ -12,7 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 
-class UI(private val builder: Builder) {
+class UI(
+  private val builder: Builder,
+  private val planner: Planner) {
   private lateinit var stage: Stage
   private lateinit var table: Table
   private val skin = Skin(Gdx.files.internal("skin/uiskin.json"))
@@ -20,7 +22,7 @@ class UI(private val builder: Builder) {
 
   fun create() {
     stage = Stage(ScreenViewport())
-    Gdx.input.inputProcessor = InputMultiplexer(stage, builder)
+    Gdx.input.inputProcessor = InputMultiplexer(stage, builder, planner)
 
     table = Table(skin)
     table.align(Align.topLeft)

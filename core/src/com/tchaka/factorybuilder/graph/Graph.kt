@@ -10,6 +10,10 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import com.tchaka.factorybuilder.flat_test.Core
+import com.tchaka.factorybuilder.flat_test.World
+import java.util.*
+import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.system.measureTimeMillis
 
@@ -38,9 +42,7 @@ class Graph: IndexedGraph<Vertex> {
       }
     }
 
-    println(measureTimeMillis {
-      lastPath = findPath(vertices[0], vertices.last())
-    })
+    lastPath = findPath(vertices[0], vertices.last())
   }
 
   fun addConnection(from: Vertex, to: Vertex) {
@@ -102,5 +104,47 @@ class Graph: IndexedGraph<Vertex> {
 
   override fun getConnections(fromNode: Vertex): Array<Connection<Vertex>> {
     return edgeMap.getOrDefault(fromNode, Array())
+  }
+
+  private fun dijkstra(start: Vertex, maxWeight: Float): Map<Vertex, Float> {
+    val queue = PriorityQueue<Pair<Float, Vertex>> { o1, o2 -> (o1.first - o2.first).toInt() }
+
+    val delta = vertices.map { it to Float.MAX_VALUE }.toMap().toMutableMap()
+    delta[start] = 0f
+
+    queue.add(Pair(0f, start))
+
+    while (!queue.isEmpty()) {
+      val v = queue.remove().second
+
+      edgeMap[v]?.map { it.cost to it.toNode }?.forEach { neighbour ->
+        val newPath = delta.getValue(v) + neighbour.first
+
+        if (newPath < delta.getValue(neighbour.second) && newPath <= maxWeight) {
+          delta[neighbour.second] = newPath
+          queue.add(neighbour)
+        }
+      }
+    }
+
+    return delta
+  }
+
+  fun findClosestOfType(world: World, start: Vertex, type: Int, maxWeight: Float): Core? {
+    val delta = dijkstra(start, maxWeight).filter { it.value <= maxWeight }
+
+    var closestCandidate: Pair<Core, Float>? = null
+
+    delta.forEach { (vertex, weight) ->
+      val building = world.getBuilding(vertex.x, vertex.y)
+
+      if (building?.type == type) {
+        if (closestCandidate == null || weight < closestCandidate!!.second) {
+          closestCandidate = Pair(building, weight)
+        }
+      }
+    }
+
+    return closestCandidate?.first
   }
 }
